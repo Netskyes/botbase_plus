@@ -11,16 +11,20 @@ namespace BotRelay.Core.Networking
 {
     public class Client
     {
+        public int UID { get; private set; }
         public IPEndPoint EndPoint { get; private set; }
         public DateTime ConnectedTime { get; private set; }
         public bool Connected { get; private set; }
+        public ClientRelay ClientRelay { get { return relay; } }
+
+        // Relay
+        private ushort destPort;
+        private string destAddress;
+
 
         private Socket handle;
         private ClientRelay relay;
         private readonly Server parentServer;
-
-        private ushort destPort;
-        private string destAddress;
 
 
         private bool appendHeader;
@@ -54,10 +58,9 @@ namespace BotRelay.Core.Networking
                 return;
 
             Connected = isConnected;
-
-
             ClientState?.Invoke(this, isConnected);
         }
+
 
         /// <summary>
         /// When client receives data.
@@ -68,6 +71,36 @@ namespace BotRelay.Core.Networking
         private void OnClientReceive(byte[] recv) => ClientReceive?.Invoke(this, recv);
 
 
+        /// <summary>
+        /// When packet is sent through relay.
+        /// </summary>
+        public event PacketSentEventHandler PacketSent;
+        public delegate void PacketSentEventHandler(Client c, byte[] recv);
+
+        private void OnPacketSent(byte[] recv) => PacketSent?.Invoke(this, recv);
+
+
+        /// <summary>
+        /// When relay connection state changes.
+        /// </summary>
+        public event RelayStateEventHandler RelayState;
+        public delegate void RelayStateEventHandler(ClientRelay rc, bool isConnected);
+
+        private void OnRelayState(ClientRelay rc, bool isConnected) => RelayState?.Invoke(rc, isConnected);
+
+
+        /// <summary>
+        /// When relay receives data.
+        /// </summary>
+        public event RelayReceiveEventHandler RelayReceive;
+        public delegate void RelayReceiveEventHandler(ClientRelay rc, byte[] recv);
+
+        private void OnRelayReceive(ClientRelay rc, byte[] recv) => RelayReceive?.Invoke(rc, recv);
+
+
+        private int HEADER_SIZE { get { return 6; } } // 6B
+
+
         public Client(Server server, Socket socket)
         {
             try
@@ -75,15 +108,17 @@ namespace BotRelay.Core.Networking
                 handle = socket;
                 parentServer = server;
 
+                UID = Utils.RandomNum();
                 ConnectedTime = DateTime.Now;
                 EndPoint = (IPEndPoint)handle.RemoteEndPoint;
+                
+                OnClientState(true);
 
 
                 readBuffer = new byte[server.BUFFER_SIZE];
-                tempHeader = new byte[server.HEADER_SIZE];
+                tempHeader = new byte[HEADER_SIZE];
 
                 handle.BeginReceive(readBuffer, 0, readBuffer.Length, SocketFlags.None, AsyncReceive, null);
-                OnClientState(true);
 
             }
             catch (Exception)
@@ -102,7 +137,6 @@ namespace BotRelay.Core.Networking
 
                 if (bytesTransfered <= 0)
                 {
-                    Utils.DebugLog("Zero bytes!");
                     throw new Exception("No bytes transfered!");
                 }
             }
@@ -194,6 +228,12 @@ namespace BotRelay.Core.Networking
                 {
                     if (isHandshakeDone)
                     {
+                        if (!relay.Connected)
+                        {
+                            Disconnect();
+                            break;
+                        }
+
                         if (readOffset > 0)
                         {
                             byte[] tempBuffer = new byte[bufferLen - readOffset];
@@ -210,17 +250,23 @@ namespace BotRelay.Core.Networking
 
                             relay.Send(tempBuffer);
                             readOffset = 0;
+
+                            // Packet sent
+                            OnPacketSent(tempBuffer);
                         }
                         else
                         {
                             relay.Send(readBuffer);
+
+                            // Packet sent
+                            OnPacketSent(readBuffer);
                         }
                         
                         break;
                     }
 
 
-                    if (dataLen < parentServer.HEADER_SIZE)
+                    if (dataLen < HEADER_SIZE)
                     {
                         try
                         {
@@ -239,23 +285,20 @@ namespace BotRelay.Core.Networking
                     }
                     else
                     {
-                        int headerLength = (appendHeader)
-                            ? (parentServer.HEADER_SIZE - tempHeaderOffset) : parentServer.HEADER_SIZE;
+                        int headerLength = (appendHeader) 
+                            ? (HEADER_SIZE - tempHeaderOffset) : HEADER_SIZE;
 
                         try
                         {
                             if (!appendHeader)
                             {
-                                BuildRelayEndPoint(readBuffer);
+                                GetRelayEndPoint(readBuffer);
                             }
                             else
                             {
                                 Array.Copy(readBuffer, readOffset, tempHeader, tempHeaderOffset, headerLength);
 
-                                BuildRelayEndPoint(tempHeader);
-
-                                appendHeader = false;
-                                tempHeaderOffset = 0;
+                                GetRelayEndPoint(tempHeader);
                             }
                         }
                         catch (Exception)
@@ -264,14 +307,13 @@ namespace BotRelay.Core.Networking
                             break;
                         }
 
+                        isHandshakeDone = true;
+                        
 
                         ConnectRelay();
-                        isHandshakeDone = true;
 
                         if ((bufferLen - headerLength) == 0)
-                        {
                             break;
-                        }
 
 
                         readOffset += headerLength;
@@ -281,36 +323,34 @@ namespace BotRelay.Core.Networking
         }
 
 
-
-
-
         private void ConnectRelay()
         {
-            relay = new ClientRelay(parentServer, this);
-            relay.Connect(destAddress, destPort);
+            relay = new ClientRelay(parentServer, this, UID);
+            relay.RelayState += OnRelayState;
+            relay.RelayReceive += OnRelayReceive;
 
-            if (relay.Connected)
-            {
-                Utils.DebugLog("Relay connected: " + relay.EndPoint);
-            }
-            else
-            {
-                Disconnect();
-            }
+            // Establish connection
+            relay.Connect(destAddress, destPort);
         }
 
-        private void BuildRelayEndPoint(byte[] buffer)
+        private void GetRelayEndPoint(byte[] buffer)
         {
             ushort port = BitConverter.ToUInt16(buffer, 0);
+            destPort = (ushort)IPAddress.NetworkToHostOrder((short)port);
 
             byte[] temp = new byte[4];
             Array.Copy(buffer, 2, temp, 0, temp.Length);
 
             uint address = (uint)IPAddress.NetworkToHostOrder((int)BitConverter.ToUInt32(temp, 0));
-
-
-            destPort = (ushort)IPAddress.NetworkToHostOrder((short)port);
             destAddress = (new IPAddress(address).ToString());
+        }
+
+        public void SendEndPacket(byte[] packet)
+        {
+            if (relay == null || !relay.Connected || packet == null)
+                return;
+
+            relay.Send(packet);
         }
 
 

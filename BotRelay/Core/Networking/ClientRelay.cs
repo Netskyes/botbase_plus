@@ -11,9 +11,11 @@ namespace BotRelay.Core.Networking
 {
     public class ClientRelay
     {
+        public int UID { get; private set; }
         public IPEndPoint EndPoint { get; private set; }
         public DateTime ConnectedTime { get; private set; }
         public bool Connected { get; private set; }
+        
 
         private Socket handle;
         private Client client;
@@ -40,10 +42,9 @@ namespace BotRelay.Core.Networking
                 return;
 
             Connected = isConnected;
-
-
             RelayState?.Invoke(this, isConnected);
         }
+
 
         /// <summary>
         /// When relay receives data.
@@ -54,19 +55,17 @@ namespace BotRelay.Core.Networking
         private void OnRelayReceive(byte[] recv) => RelayReceive?.Invoke(this, recv);
 
 
-
-        public ClientRelay(Server server, Client c)
+        public ClientRelay(Server s, Client c, int uid)
         {
             client = c;
-            parentServer = server;
+            parentServer = s;
+            UID = uid;
 
-            readBuffer = new byte[server.BUFFER_SIZE];
+            readBuffer = new byte[s.BUFFER_SIZE];
         }
 
         public void Connect(string host, ushort port)
         {
-            Utils.DebugLog("Connecting: " + host + ":" + port);
-
             try
             {
                 handle = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
@@ -76,10 +75,12 @@ namespace BotRelay.Core.Networking
                 {
                     ConnectedTime = DateTime.Now;
                     EndPoint = (IPEndPoint)handle.RemoteEndPoint;
-                    
-                    handle.BeginReceive(readBuffer, 0, readBuffer.Length, SocketFlags.None, AsyncReceive, null);
+
                     OnRelayState(true);
 
+
+                    handle.BeginReceive(readBuffer, 0, readBuffer.Length, SocketFlags.None, AsyncReceive, null);
+                    
                 }
             }
             catch (Exception)
@@ -123,14 +124,14 @@ namespace BotRelay.Core.Networking
             {
                 Array.Copy(readBuffer, 0, received, 0, received.Length);
             }
-            catch
+            catch (Exception)
             {
                 Disconnect();
                 return;
             }
 
             OnRelayReceive(received);
-            Utils.DebugLog("Relay recv: " + Encoding.UTF8.GetString(received));
+
 
             if (client.Connected)
             {
@@ -154,7 +155,6 @@ namespace BotRelay.Core.Networking
                 Disconnect();
             }
         }
-
 
 
         public void Send(byte[] packet)

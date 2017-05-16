@@ -51,6 +51,7 @@
     <Compile Include="Core\Networking\Client.cs" />
     <Compile Include="Core\Networking\ClientRelay.cs" />
     <Compile Include="Core\Networking\Server.cs" />
+    <Compile Include="UI\Styles.cs" />
     <Compile Include="UI\Window.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -59,7 +60,7 @@
     </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Utilities\Exports.cs" />
+    <Compile Include="Utilities\Imports.cs" />
     <Compile Include="Utilities\General.cs" />
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>

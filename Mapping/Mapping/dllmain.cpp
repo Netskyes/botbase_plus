@@ -78,58 +78,80 @@ void __stdcall LogMe(std::string text)
 	file.close();
 }
 
+/*
+bool result;
+WSAPROTOCOL_INFO info = GetSockInfo(s, result);
+
+if (result)
+{
+std::cout << "Socket (" << s << ") -> Type: " << info.iSocketType << " Protocol: " << info.iProtocol << std::endl;
+}
+*/
+
+
 
 
 DWORD retAddrBackup;
 struct sockaddr* sockAddrNew;
 struct sockaddr* sockAddrBackup;
+bool isPatchUp = false;
 
 LPVOID connectTramp;
 LPVOID WSAConnectTramp;
 LPVOID bindTramp;
 
-std::mutex patchLock;
-
 
 void __stdcall PatchSockAddr()
 {
-	patchLock.lock();
+	sockAddrNew = new sockaddr;
+	*sockAddrNew = *sockAddrBackup;
 
-	struct sockaddr* addrNew = new sockaddr;
-	sockAddrNew = addrNew;
+	isPatchUp = false;
 
-	struct sockaddr tempBackup = *sockAddrBackup;
-	*sockAddrNew = tempBackup;
-	
-	((sockaddr_in*)sockAddrNew)->sin_port = htons(8085);
-	((sockaddr_in*)sockAddrNew)->sin_addr.s_addr = inet_addr("127.0.0.1");
+	sockaddr_in* temp = (sockaddr_in*)sockAddrNew;
+	std::string hostname = inet_ntoa(temp->sin_addr);
 
-	patchLock.unlock();
+	if (hostname != "127.0.0.1")
+	{
+		((sockaddr_in*)sockAddrNew)->sin_port = htons(8085);
+		((sockaddr_in*)sockAddrNew)->sin_addr.s_addr = inet_addr("127.0.0.1");
+
+		isPatchUp = true;
+	}
 }
 
-void __stdcall sendRelay(SOCKET s)
+void __stdcall SendPatch(SOCKET s)
 {
+	if (!isPatchUp)
+		return;
+
 	struct sockaddr_in* server = (struct sockaddr_in*)sockAddrBackup;
 
 	ULONG addr = htonl(server->sin_addr.s_addr);
 	USHORT port = server->sin_port;
-	
-	char frame[sizeof(USHORT) + sizeof(ULONG)];
+
+
+	char frame[6];
 
 	memcpy(frame, &port, sizeof(USHORT));
 	memcpy(&frame[2], &addr, sizeof(ULONG));
-
 
 	int result = send(s, (const char*)frame, sizeof(frame), 0);
 }
 
 
-void __stdcall mConnect(SOCKET s, const struct sockaddr *name)
+void __stdcall mConnect(SOCKET s, const struct sockaddr *addr)
 {
-	sockaddr_in* addr = ((sockaddr_in*)sockAddrBackup);
+	sockaddr_in* addrNew = ((sockaddr_in*)sockAddrNew);
+	sockaddr_in* addrBackup = ((sockaddr_in*)sockAddrBackup);
+	
+	bool result;
+	WSAPROTOCOL_INFO sockInfo = GetSockInfo(s, result);
 
 	std::stringstream ss;
-	ss << "Connect: " << inet_ntoa(addr->sin_addr) << ":" << addr->sin_port << " Socket: " << s << " Family: " << addr->sin_family << std::endl;
+	ss << "Connect: " << inet_ntoa(addrNew->sin_addr) << ":" << ntohs(addrNew->sin_port);
+	ss << " ~~~~> Relay: " << inet_ntoa(addrBackup->sin_addr) << ":" << ntohs(addrBackup->sin_port) << " Socket: " << s;
+	ss << " (Type: " << sockInfo.iSocketType << " Protocol: " << sockInfo.iProtocol << ")" << std::endl;
 
 	LogMe(ss.str());
 }
@@ -146,6 +168,11 @@ __declspec(naked) int hookConnect()
 
 		call PatchSockAddr;
 
+		// Log
+		push[esp + 0x2C];
+		push[esp + 0x2C];
+		call mConnect;
+
 		popfd;
 		popad;
 
@@ -156,33 +183,55 @@ __declspec(naked) int hookConnect()
 
 		call connectTramp;
 
-		// Log
-		push[esp + 0x8];
-		push[esp + 0x8];
-		call mConnect;
 
 		pop retAddrBackup;
-		
-		call sendRelay;
-		
+		call SendPatch;
+
 		add esp, 8;
+		mov eax, 0x00; // Success
+
 		push retAddrBackup;
 
 		ret;
 	}
+
+	delete sockAddrBackup;
+	delete sockAddrNew;
 }
+
+__declspec(naked) int hookConnectLog()
+{
+	__asm
+	{
+		pushad;
+		pushfd;
+
+		push[esp + 0x2C];
+		push[esp + 0x2C];
+		call mConnect;
+
+		popfd;
+		popad;
+
+		jmp connectTramp;
+	}
+}
+
 
 void __stdcall mWSAConnect(SOCKET s, const struct sockaddr *name)
 {
-	sockaddr_in* addr = (sockaddr_in*)name;
-
-	std::stringstream ss;
-	ss << "WSAConnect: " << inet_ntoa(addr->sin_addr) << ":" << addr->sin_port << " Socket: " << s << std::endl;
-
-	LogMe(ss.str());
+	sockaddr_in* addrNew = ((sockaddr_in*)sockAddrNew);
+	sockaddr_in* addrBackup = ((sockaddr_in*)sockAddrBackup);
 
 	bool result;
-	WSAPROTOCOL_INFO info = GetSockInfo(s, result);
+	WSAPROTOCOL_INFO sockInfo = GetSockInfo(s, result);
+
+	std::stringstream ss;
+	ss << "WSAConnect: " << inet_ntoa(addrNew->sin_addr) << ":" << ntohs(addrNew->sin_port);
+	ss << " ~~~~> Relay: " << inet_ntoa(addrBackup->sin_addr) << ":" << ntohs(addrBackup->sin_port) << " Socket: " << s;
+	ss << " (Type: " << sockInfo.iSocketType << " Protocol: " << sockInfo.iProtocol << ")" << std::endl;
+
+	LogMe(ss.str());
 }
 
 __declspec(naked) int hookWSAConnect()
@@ -196,6 +245,11 @@ __declspec(naked) int hookWSAConnect()
 		pop sockAddrBackup;
 
 		call PatchSockAddr;
+
+		// Log
+		push[esp + 0x1C];
+		push[esp + 0x1C];
+		call mWSAConnect;
 
 		popfd;
 		popad;
@@ -211,27 +265,49 @@ __declspec(naked) int hookWSAConnect()
 		
 		call WSAConnectTramp;
 
-		// Log
-		push[esp + 0x8];
-		push[esp + 0x8];
-		call mWSAConnect;
 
 		pop retAddrBackup;
-		call sendRelay;
+		call SendPatch;
 
 		add esp, 24;
+		mov eax, 0x00; // Success
+
 		push retAddrBackup;
 
 		ret;
 	}
+
+	delete sockAddrBackup;
+	delete sockAddrNew;
 }
 
-void __stdcall mBind(SOCKET s, const struct sockaddr *name, int namelen)
+
+void __stdcall mBind(SOCKET s, const struct sockaddr *addr)
 {
-	sockaddr_in* addr = ((sockaddr_in*)name);
+	sockaddr_in* addrNew = ((sockaddr_in*)sockAddrNew);
+	sockaddr_in* addrBackup = ((sockaddr_in*)sockAddrBackup);
+
+	bool result;
+	WSAPROTOCOL_INFO sockInfo = GetSockInfo(s, result);
 
 	std::stringstream ss;
-	ss << "Bind: " << inet_ntoa(addr->sin_addr) << ":" << addr->sin_port << " Socket: " << s << " Family: " << addr->sin_family << std::endl;
+	ss << "Bind: " << inet_ntoa(addrNew->sin_addr) << ":" << ntohs(addrNew->sin_port);
+	ss << " -> " << inet_ntoa(addrBackup->sin_addr) << ":" << ntohs(addrBackup->sin_port) << " Socket: " << s;
+	ss << " (Type: " << sockInfo.iSocketType << " Protocol: " << sockInfo.iProtocol << ")" << std::endl;
+
+	LogMe(ss.str());
+}
+
+void __stdcall mBindLog(SOCKET s, const struct sockaddr *addr)
+{
+	sockaddr_in* temp = ((sockaddr_in*)addr);
+
+	bool result;
+	WSAPROTOCOL_INFO sockInfo = GetSockInfo(s, result);
+
+	std::stringstream ss;
+	ss << "Bind: " << inet_ntoa(temp->sin_addr) << ":" << ntohs(temp->sin_port) << " Socket: " << s;
+	ss << " (Type: " << sockInfo.iSocketType << " Protocol: " << sockInfo.iProtocol << ")" << std::endl;
 
 	LogMe(ss.str());
 }
@@ -248,6 +324,10 @@ __declspec(naked) int hookBind()
 
 		call PatchSockAddr;
 
+		push[esp + 0x2C];
+		push[esp + 0x2C];
+		call mBind;
+		
 		popfd;
 		popad;
 
@@ -258,34 +338,46 @@ __declspec(naked) int hookBind()
 
 		call bindTramp;
 
+
 		pop retAddrBackup;
-		call mBind;
 		
+		add esp, 12;
 		push retAddrBackup;
 
 		ret;
 	}
+
+	delete sockAddrBackup;
 }
 
-
-/*
-bool result;
-WSAPROTOCOL_INFO info = GetSockInfo(s, result);
-
-if (result)
+__declspec(naked) int hookBindLog()
 {
-std::cout << "Socket (" << s << ") -> Type: " << info.iSocketType << " Protocol: " << info.iProtocol << std::endl;
+	__asm
+	{
+		pushad;
+		pushfd;
+
+		push[esp + 0x2C];
+		push[esp + 0x2C];
+		call mBindLog;
+
+		popfd;
+		popad;
+
+		jmp bindTramp;
+	}
 }
-*/
 
 
 #pragma region Hooks
 
-LPVOID socketTramp;
+LPVOID sendTramp;
+LPVOID recvTramp;
 LPVOID WSARecvTramp;
 LPVOID WSASendTramp;
-LPVOID acceptTramp;
+LPVOID socketTramp;
 LPVOID listenTramp;
+LPVOID acceptTramp;
 
 
 void __stdcall mWSARecv(SOCKET s, LPWSABUF lpBuffers)
@@ -338,6 +430,63 @@ __declspec(naked) int hookWSASend()
 		popad;
 
 		jmp WSASendTramp;
+	}
+}
+
+
+void __stdcall mSend(SOCKET s, const char *buf, int len)
+{
+	std::stringstream ss;
+	ss << "Send: " << buf << " Socket: " << s << " Len: " << len << std::endl;
+
+	LogMe(ss.str());
+}
+
+__declspec(naked) int hookSend()
+{
+	__asm
+	{
+		pushad;
+		pushfd;
+
+		push[esp + 0x30];
+		push[esp + 0x30];
+		push[esp + 0x30];
+		call mSend;
+
+		popfd;
+		popad;
+
+		jmp sendTramp;
+	}
+}
+
+
+void __stdcall mRecv(SOCKET s, char *buf, int len)
+{
+	std::stringstream ss;
+	ss << "Recv: " << buf << " Socket: " << s << " Len: " << len << std::endl;
+
+	LogMe(ss.str());
+}
+
+__declspec(naked) int hookRecv()
+{
+	__asm
+	{
+		pushad;
+		pushfd;
+
+		push[esp + 0x30];
+		push[esp + 0x30];
+		push[esp + 0x30];
+
+		call mRecv;
+
+		popfd;
+		popad;
+
+		jmp recvTramp;
 	}
 }
 
@@ -401,8 +550,14 @@ __declspec(naked) int hookSocket()
 
 void __stdcall mListen(SOCKET s, int backlog)
 {
+	struct sockaddr_in sin;
+	int len = sizeof(sin);
+
+	getsockname(s, (struct sockaddr*)&sin, &len);
+
+
 	std::stringstream ss;
-	ss << "Listen: " << s << " Backlog: " << backlog << std::endl;
+	ss << "Listen: " << inet_ntoa(sin.sin_addr) << ":" << ntohs(sin.sin_port) << " Socket: " << s << " Backlog: " << backlog << std::endl;
 
 	LogMe(ss.str());
 }
@@ -427,6 +582,34 @@ __declspec(naked) int hookListen()
 
 #pragma endregion
 
+#pragma region GameHooks
+
+LPVOID queryCardTramp;
+
+void __stdcall mQueryCard(char* ver)
+{
+	std::cout << "Version: " << ver << std::endl;
+}
+
+__declspec(naked) int hookQueryCard()
+{
+	__asm
+	{
+		pushad;
+		pushfd;
+
+		push[esp + 0x28];
+		call mQueryCard;
+
+		popfd;
+		popad;
+
+		jmp queryCardTramp;
+	}
+}
+
+#pragma endregion
+
 
 // Jump -> Proxy -> Trampoline -> Original + 5
 BOOL HookFunc(LPCWSTR moduleName, LPCSTR funcName, LPVOID hookFunc, LPVOID* funcTramp, const int len)
@@ -434,6 +617,7 @@ BOOL HookFunc(LPCWSTR moduleName, LPCSTR funcName, LPVOID hookFunc, LPVOID* func
 	BYTE jump[] = { 0xE9, 0x00, 0x00, 0x00, 0x00 };
 	BYTE trampoline[60];
 
+	// Original bytes + jump
 	*funcTramp = VirtualAlloc(NULL, (len + 5), MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE);
 
 	DWORD baseAddr = (DWORD)GetProcAddress(GetModuleHandle(moduleName), funcName);
@@ -443,17 +627,25 @@ BOOL HookFunc(LPCWSTR moduleName, LPCSTR funcName, LPVOID hookFunc, LPVOID* func
 	VirtualProtect((LPVOID)baseAddr, len, PAGE_EXECUTE_READWRITE, &prev);
 
 
-	DWORD retJmp = (baseAddr - (DWORD)*funcTramp) - len;
+	DWORD retJmpAddr = (baseAddr - (DWORD)*funcTramp) - len;
 
 	memcpy(trampoline, (LPVOID)baseAddr, len);
 	trampoline[len] = 0xE9;
-	memcpy(&trampoline[len + 1], &retJmp, 4);
+	memcpy(&trampoline[len + 1], &retJmpAddr, 4);
 	memcpy(*funcTramp, trampoline, len + 5);
 
 
-	DWORD proxy = ((DWORD)hookFunc - baseAddr) - len;
+	DWORD proxy = ((DWORD)hookFunc - baseAddr) - 5;
 	memcpy(&jump[1], &proxy, 4);
 	memcpy((LPVOID)baseAddr, jump, len);
+
+	if (len > 5)
+	{
+		for (int i = 0; i < (len - 5); i++)
+		{
+			memset((LPVOID)((baseAddr + 5) + i), 0x90, 1);
+		}
+	}
 
 
 	VirtualProtect((LPVOID)baseAddr, len, prev, &prev);
@@ -469,34 +661,43 @@ void HookUp()
 
 	HookFunc(L"ws2_32.dll", "connect", (LPVOID*)hookConnect, &connectTramp, 5);
 	HookFunc(L"ws2_32.dll", "WSAConnect", (LPVOID*)hookWSAConnect, &WSAConnectTramp, 5);
+	//HookFunc(L"ws2_32.dll", "connect", (LPVOID*)hookConnectLog, &connectTramp, 5);
+
+	//HookFunc(L"ws2_32.dll", "bind", (LPVOID*)hookBind, &bindTramp, 5);
+	//HookFunc(L"ws2_32.dll", "bind", (LPVOID*)hookBindLog, &bindTramp, 5);
 	//HookFunc(L"ws2_32.dll", "listen", (LPVOID*)hookListen, &listenTramp, 5);
 	//HookFunc(L"ws2_32.dll", "recv", (LPVOID*)hookRecv, &recvTramp, 5);
 	//HookFunc(L"ws2_32.dll", "send", (LPVOID*)hookSend, &sendTramp, 5);
-	HookFunc(L"ws2_32.dll", "WSARecv", (LPVOID*)hookWSARecv, &WSARecvTramp, 5);
-	HookFunc(L"ws2_32.dll", "WSASend", (LPVOID*)hookWSASend, &WSASendTramp, 5);
-	HookFunc(L"ws2_32.dll", "socket", (LPVOID*)hookSocket, &socketTramp, 5);
+	//HookFunc(L"ws2_32.dll", "WSARecv", (LPVOID*)hookWSARecv, &WSARecvTramp, 5);
+	//HookFunc(L"ws2_32.dll", "WSASend", (LPVOID*)hookWSASend, &WSASendTramp, 5);
+	//HookFunc(L"ws2_32.dll", "socket", (LPVOID*)hookSocket, &socketTramp, 5);
 	//HookFunc(L"ws2_32.dll", "accept", (LPVOID*)hookAccept, &acceptTramp, 5);
-	//HookFunc(L"ws2_32.dll", "bind", (LPVOID*)hookBind, &bindTramp, 5);
+
+
+	HookFunc(L"ygopro_vs.exe", "query_card", (LPVOID*)hookQueryCard, &queryCardTramp, 8);
 }
 
 
 void Test()
 {
-	//HookFunc(L"ws2_32.dll", "recv", (LPVOID*)hookRecv, &recvTramp, 5);
 	
-
-	/*
 	int offset = 4100;
 	uintptr_t base = reinterpret_cast<uintptr_t>(GetModuleHandle(L"ygopro_vs.exe"));
 	uintptr_t* func = (uintptr_t *)(base + (offset)); //4096
-	*/
+	
+
+	int* health = (int*)(base + 0x02AEC44 + 4096);
+
+	int value = *health;
+
+	std::cout << "Current health: " << value << std::endl;
 }
 
 DWORD WINAPI Entry()
 {
 	HookUp();
 
-	/*
+	
 	while (true)
 	{
 		std::string input;
@@ -507,22 +708,17 @@ DWORD WINAPI Entry()
 		{
 			HookUp();
 		}
-		else if (input == "unhook")
-		{
-			Unhook();
-		}
 		else if (input == "test")
 		{
 			Test();
 		}
 		else
 		{
-			Unhook();
 			FreeConsole();
 			break;
 		}
 	}
-	*/
+	
 
 	return 0;
 }

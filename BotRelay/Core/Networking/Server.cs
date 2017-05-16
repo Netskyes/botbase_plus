@@ -42,6 +42,10 @@ namespace BotRelay.Core.Networking
             }
         }
 
+
+        /// <summary>
+        /// When server listening state changes.
+        /// </summary>
         public event ServerStateEventHandler ServerState;
         public delegate void ServerStateEventHandler(Server s, bool isListening, ushort port);
 
@@ -55,6 +59,9 @@ namespace BotRelay.Core.Networking
         }
 
 
+        /// <summary>
+        /// When client connection state changes.
+        /// </summary>
         public event ClientStateEventHandler ClientState;
         public delegate void ClientStateEventHandler(Server s, Client c, bool isConnected);
 
@@ -69,21 +76,56 @@ namespace BotRelay.Core.Networking
         }
 
 
+        /// <summary>
+        /// When client receives data.
+        /// </summary>
         public event ClientReceiveStateHandler ClientReceive;
         public delegate void ClientReceiveStateHandler(Server s, Client c, byte[] recv);
 
         private void OnClientReceive(Client c, byte[] recv)
         {
-            if (recv.Length == 0)
-                return;
+            if (recv.Length > 0)
+            {
+                ClientReceive?.Invoke(this, c, recv);
+            }
+        }
 
-            ClientReceive?.Invoke(this, c, recv);
+
+        /// <summary>
+        /// When packet is sent through relay.
+        /// </summary>
+        public event PacketSentEventHandler PacketSent;
+        public delegate void PacketSentEventHandler(Server s, Client c, byte[] recv);
+
+        private void OnPacketSent(Client c, byte[] recv) => PacketSent?.Invoke(this, c, recv);
+
+
+        /// <summary>
+        /// When relay connection state changes.
+        /// </summary>
+        public event RelayStateEventHandler RelayState;
+        public delegate void RelayStateEventHandler(Server s, ClientRelay rc, bool isConnected);
+
+        private void OnRelayState(ClientRelay rc, bool isConnected) => RelayState?.Invoke(this, rc, isConnected);
+
+
+        /// <summary>
+        /// When relay receives data.
+        /// </summary>
+        public event RelayReceiveEventHandler RelayReceive;
+        public delegate void RelayReceiveEventHandler(Server s, ClientRelay rc, byte[] recv);
+
+        private void OnRelayReceive(ClientRelay rc, byte[] recv)
+        {
+            if (recv.Length > 0)
+            {
+                RelayReceive?.Invoke(this, rc, recv);
+            }
         }
 
 
         public int BUFFER_SIZE { get { return 1024 * 1024; } } // 1MB
         public int MAX_PACKET_SIZE { get { return (1024 * 1024) * 10; } } // 10MB
-        public int HEADER_SIZE { get { return 6; } }
 
 
         public void Listen(ushort port)
@@ -178,6 +220,9 @@ namespace BotRelay.Core.Networking
             {
                 client.ClientState += OnClientState;
                 client.ClientReceive += OnClientReceive;
+                client.RelayState += OnRelayState;
+                client.RelayReceive += OnRelayReceive;
+                client.PacketSent += OnPacketSent;
                 clients.Add(client);
             }
         }
@@ -188,6 +233,9 @@ namespace BotRelay.Core.Networking
             {
                 client.ClientState -= OnClientState;
                 client.ClientReceive -= OnClientReceive;
+                client.RelayState -= OnRelayState;
+                client.RelayReceive -= OnRelayReceive;
+                client.PacketSent -= OnPacketSent;
                 clients.Remove(client);
             }
         }
@@ -231,6 +279,9 @@ namespace BotRelay.Core.Networking
                         clients[0].Disconnect();
                         clients[0].ClientState -= OnClientState;
                         clients[0].ClientReceive -= OnClientReceive;
+                        clients[0].RelayState -= OnRelayState;
+                        clients[0].RelayReceive -= OnRelayReceive;
+                        clients[0].PacketSent -= OnPacketSent;
                         clients.RemoveAt(0);
                     }
                     catch
