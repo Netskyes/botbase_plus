@@ -44,8 +44,7 @@ namespace BotRelay
 
 
             // Inject mapping
-            BeginInjection("ygopro_vs.exe");
-            //BeginInjection("calc.exe");
+            BeginInjection("Albion-Online.exe");
         }
 
         
@@ -113,7 +112,7 @@ namespace BotRelay
         {
             Task.Run(() =>
             {
-                bool result = false;
+                bool result;
 
                 do
                 {

@@ -45,8 +45,6 @@ namespace BotRelay.Core.Networking
             try
             {
                 int bytesTransfered = handle.EndReceive(result);
-
-                System.Windows.Forms.MessageBox.Show("Trans: " + bytesTransfered);
             }
             catch
             {

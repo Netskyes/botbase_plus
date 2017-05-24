@@ -90,7 +90,6 @@ std::cout << "Socket (" << s << ") -> Type: " << info.iSocketType << " Protocol:
 
 
 
-
 DWORD retAddrBackup;
 struct sockaddr* sockAddrNew;
 struct sockaddr* sockAddrBackup;
@@ -697,7 +696,6 @@ DWORD WINAPI Entry()
 {
 	HookUp();
 
-	
 	while (true)
 	{
 		std::string input;

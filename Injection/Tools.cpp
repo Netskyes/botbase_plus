@@ -41,28 +41,28 @@ extern "C"
 {
 	BOOL BOTAPI Inject(const char* procName, const char* dll)
 	{
-		HANDLE hProc = GetProcessByName(charToWChar(procName));
+		HANDLE procHandle = GetProcessByName(charToWChar(procName));
 
-		if (!hProc)
+		if (!procHandle)
 		{
 			return FALSE;
 		}
 
 
 		DWORD LLAddress = (DWORD)GetProcAddress(GetModuleHandle(L"kernel32.dll"), "LoadLibraryA");
-		PVOID memory = VirtualAllocEx(hProc, NULL, strlen(dll) + 1, MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE);
+		PVOID memory = VirtualAllocEx(procHandle, NULL, strlen(dll) + 1, MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE);
 
-		WriteProcessMemory(hProc, memory, dll, strlen(dll) + 1, NULL);
+		WriteProcessMemory(procHandle, memory, dll, strlen(dll) + 1, NULL);
 
 
-		if (!CreateRemoteThread(hProc, NULL, NULL, (LPTHREAD_START_ROUTINE)LLAddress, memory, NULL, NULL))
+		if (!CreateRemoteThread(procHandle, NULL, NULL, (LPTHREAD_START_ROUTINE)LLAddress, memory, NULL, NULL))
 		{
 			return FALSE;
 		}
 
 
-		CloseHandle(hProc);
-		VirtualFreeEx(hProc, memory, 0, MEM_FREE | MEM_COMMIT);
+		CloseHandle(procHandle);
+		VirtualFreeEx(procHandle, memory, 0, MEM_FREE | MEM_COMMIT);
 
 		return 1;
 	}
