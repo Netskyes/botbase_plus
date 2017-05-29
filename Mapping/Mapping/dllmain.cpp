@@ -130,12 +130,32 @@ void __stdcall SendPatch(SOCKET s)
 	USHORT port = server->sin_port;
 
 
-	char frame[6];
+	bool result;
+	WSAPROTOCOL_INFO sockInfo = GetSockInfo(s, result);
 
-	memcpy(frame, &port, sizeof(USHORT));
-	memcpy(&frame[2], &addr, sizeof(ULONG));
 
-	int result = send(s, (const char*)frame, sizeof(frame), 0);
+	int resultSend;
+
+	if (result && sockInfo.iProtocol == 17)
+	{
+		char frame[8];
+		USHORT opcode = htons(1337);
+
+		memcpy(frame, &opcode, sizeof(USHORT));
+		memcpy(&frame[2], &port, sizeof(USHORT));
+		memcpy(&frame[4], &addr, sizeof(ULONG));
+
+		resultSend = send(s, (const char*)frame, sizeof(frame), 0);
+	}
+	else
+	{
+		char frame[6];
+
+		memcpy(frame, &port, sizeof(USHORT));
+		memcpy(&frame[2], &addr, sizeof(ULONG));
+
+		resultSend = send(s, (const char*)frame, sizeof(frame), 0);
+	}
 }
 
 
@@ -581,34 +601,6 @@ __declspec(naked) int hookListen()
 
 #pragma endregion
 
-#pragma region GameHooks
-
-LPVOID queryCardTramp;
-
-void __stdcall mQueryCard(char* ver)
-{
-	std::cout << "Version: " << ver << std::endl;
-}
-
-__declspec(naked) int hookQueryCard()
-{
-	__asm
-	{
-		pushad;
-		pushfd;
-
-		push[esp + 0x28];
-		call mQueryCard;
-
-		popfd;
-		popad;
-
-		jmp queryCardTramp;
-	}
-}
-
-#pragma endregion
-
 
 // Jump -> Proxy -> Trampoline -> Original + 5
 BOOL HookFunc(LPCWSTR moduleName, LPCSTR funcName, LPVOID hookFunc, LPVOID* funcTramp, const int len)
@@ -671,9 +663,6 @@ void HookUp()
 	//HookFunc(L"ws2_32.dll", "WSASend", (LPVOID*)hookWSASend, &WSASendTramp, 5);
 	//HookFunc(L"ws2_32.dll", "socket", (LPVOID*)hookSocket, &socketTramp, 5);
 	//HookFunc(L"ws2_32.dll", "accept", (LPVOID*)hookAccept, &acceptTramp, 5);
-
-
-	HookFunc(L"ygopro_vs.exe", "query_card", (LPVOID*)hookQueryCard, &queryCardTramp, 8);
 }
 
 
@@ -696,6 +685,7 @@ DWORD WINAPI Entry()
 {
 	HookUp();
 
+	/*
 	while (true)
 	{
 		std::string input;
@@ -716,7 +706,7 @@ DWORD WINAPI Entry()
 			break;
 		}
 	}
-	
+	*/
 
 	return 0;
 }

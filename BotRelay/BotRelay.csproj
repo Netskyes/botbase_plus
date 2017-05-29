@@ -51,6 +51,8 @@
     <Compile Include="Core\Networking\Client.cs" />
     <Compile Include="Core\Networking\ClientRelay.cs" />
     <Compile Include="Core\Networking\Server.cs" />
+    <Compile Include="Core\Structs\UdpLink.cs" />
+    <Compile Include="Core\Structs\UdpPacket.cs" />
     <Compile Include="UI\Styles.cs" />
     <Compile Include="UI\Window.cs">
       <SubType>Form</SubType>
