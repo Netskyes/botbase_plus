@@ -30,14 +30,9 @@
         {
             this.txtbox_Console = new System.Windows.Forms.TextBox();
             this.dtg_PacketsData = new System.Windows.Forms.DataGridView();
-            this.dtg_Socket = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.dtg_EndPoint = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.dtg_Length = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.dtg_Content = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.tabControl1 = new System.Windows.Forms.TabControl();
             this.tabPage1 = new System.Windows.Forms.TabPage();
             this.tabPage2 = new System.Windows.Forms.TabPage();
-            this.dtg_Packets = new System.Windows.Forms.DataGridView();
             this.container2 = new Container();
             this.dtg_Relays = new System.Windows.Forms.DataGridView();
             this.dtg_ClientSocket = new System.Windows.Forms.DataGridViewTextBoxColumn();
@@ -45,19 +40,24 @@
             this.container1 = new Container();
             this.txtbox_PacketContents = new System.Windows.Forms.TextBox();
             this.btn_SendPacket = new System.Windows.Forms.Button();
+            this.dtg_Packets = new System.Windows.Forms.DataGridView();
             this.dataGridViewTextBoxColumn1 = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.dataGridViewTextBoxColumn2 = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.Column1 = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.dataGridViewTextBoxColumn3 = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.ASCII = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.dtg_Socket = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.dtg_EndPoint = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.dtg_Length = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.dtg_Content = new System.Windows.Forms.DataGridViewTextBoxColumn();
             ((System.ComponentModel.ISupportInitialize)(this.dtg_PacketsData)).BeginInit();
             this.tabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
             this.tabPage2.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.dtg_Packets)).BeginInit();
             this.container2.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dtg_Relays)).BeginInit();
             this.container1.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.dtg_Packets)).BeginInit();
             this.SuspendLayout();
             // 
             // txtbox_Console
@@ -94,33 +94,6 @@
             this.dtg_PacketsData.Size = new System.Drawing.Size(724, 344);
             this.dtg_PacketsData.TabIndex = 1;
             // 
-            // dtg_Socket
-            // 
-            this.dtg_Socket.HeaderText = "Socket";
-            this.dtg_Socket.Name = "dtg_Socket";
-            this.dtg_Socket.ReadOnly = true;
-            // 
-            // dtg_EndPoint
-            // 
-            this.dtg_EndPoint.HeaderText = "Remote";
-            this.dtg_EndPoint.Name = "dtg_EndPoint";
-            this.dtg_EndPoint.ReadOnly = true;
-            this.dtg_EndPoint.Width = 130;
-            // 
-            // dtg_Length
-            // 
-            this.dtg_Length.HeaderText = "Length";
-            this.dtg_Length.Name = "dtg_Length";
-            this.dtg_Length.ReadOnly = true;
-            this.dtg_Length.Width = 70;
-            // 
-            // dtg_Content
-            // 
-            this.dtg_Content.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.Fill;
-            this.dtg_Content.HeaderText = "Content";
-            this.dtg_Content.Name = "dtg_Content";
-            this.dtg_Content.ReadOnly = true;
-            // 
             // tabControl1
             // 
             this.tabControl1.Controls.Add(this.tabPage1);
@@ -156,32 +129,6 @@
             this.tabPage2.TabIndex = 1;
             this.tabPage2.Text = "Packet Editor";
             this.tabPage2.UseVisualStyleBackColor = true;
-            // 
-            // dtg_Packets
-            // 
-            this.dtg_Packets.AllowUserToAddRows = false;
-            this.dtg_Packets.AllowUserToDeleteRows = false;
-            this.dtg_Packets.AllowUserToResizeColumns = false;
-            this.dtg_Packets.AllowUserToResizeRows = false;
-            this.dtg_Packets.BackgroundColor = System.Drawing.Color.White;
-            this.dtg_Packets.BorderStyle = System.Windows.Forms.BorderStyle.None;
-            this.dtg_Packets.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            this.dtg_Packets.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
-            this.dataGridViewTextBoxColumn1,
-            this.dataGridViewTextBoxColumn2,
-            this.Column1,
-            this.dataGridViewTextBoxColumn3,
-            this.ASCII});
-            this.dtg_Packets.Dock = System.Windows.Forms.DockStyle.Top;
-            this.dtg_Packets.GridColor = System.Drawing.Color.LightGray;
-            this.dtg_Packets.Location = new System.Drawing.Point(0, 0);
-            this.dtg_Packets.MultiSelect = false;
-            this.dtg_Packets.Name = "dtg_Packets";
-            this.dtg_Packets.RowHeadersVisible = false;
-            this.dtg_Packets.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
-            this.dtg_Packets.Size = new System.Drawing.Size(724, 362);
-            this.dtg_Packets.TabIndex = 3;
-            this.dtg_Packets.CellClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.dtg_Packets_CellClick);
             // 
             // container2
             // 
@@ -257,6 +204,32 @@
             this.btn_SendPacket.UseVisualStyleBackColor = true;
             this.btn_SendPacket.Click += new System.EventHandler(this.btn_SendPacket_Click);
             // 
+            // dtg_Packets
+            // 
+            this.dtg_Packets.AllowUserToAddRows = false;
+            this.dtg_Packets.AllowUserToDeleteRows = false;
+            this.dtg_Packets.AllowUserToResizeColumns = false;
+            this.dtg_Packets.AllowUserToResizeRows = false;
+            this.dtg_Packets.BackgroundColor = System.Drawing.Color.White;
+            this.dtg_Packets.BorderStyle = System.Windows.Forms.BorderStyle.None;
+            this.dtg_Packets.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            this.dtg_Packets.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
+            this.dataGridViewTextBoxColumn1,
+            this.dataGridViewTextBoxColumn2,
+            this.Column1,
+            this.dataGridViewTextBoxColumn3,
+            this.ASCII});
+            this.dtg_Packets.Dock = System.Windows.Forms.DockStyle.Top;
+            this.dtg_Packets.GridColor = System.Drawing.Color.LightGray;
+            this.dtg_Packets.Location = new System.Drawing.Point(0, 0);
+            this.dtg_Packets.MultiSelect = false;
+            this.dtg_Packets.Name = "dtg_Packets";
+            this.dtg_Packets.RowHeadersVisible = false;
+            this.dtg_Packets.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
+            this.dtg_Packets.Size = new System.Drawing.Size(724, 362);
+            this.dtg_Packets.TabIndex = 3;
+            this.dtg_Packets.CellClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.dtg_Packets_CellClick);
+            // 
             // dataGridViewTextBoxColumn1
             // 
             this.dataGridViewTextBoxColumn1.HeaderText = "Socket";
@@ -291,6 +264,32 @@
             this.ASCII.Name = "ASCII";
             this.ASCII.ReadOnly = true;
             // 
+            // dtg_Socket
+            // 
+            this.dtg_Socket.HeaderText = "Socket";
+            this.dtg_Socket.Name = "dtg_Socket";
+            this.dtg_Socket.ReadOnly = true;
+            // 
+            // dtg_EndPoint
+            // 
+            this.dtg_EndPoint.HeaderText = "Remote";
+            this.dtg_EndPoint.Name = "dtg_EndPoint";
+            this.dtg_EndPoint.ReadOnly = true;
+            this.dtg_EndPoint.Width = 130;
+            // 
+            // dtg_Length
+            // 
+            this.dtg_Length.HeaderText = "Length";
+            this.dtg_Length.Name = "dtg_Length";
+            this.dtg_Length.ReadOnly = true;
+            this.dtg_Length.Width = 70;
+            // 
+            // dtg_Content
+            // 
+            this.dtg_Content.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.Fill;
+            this.dtg_Content.HeaderText = "Content";
+            this.dtg_Content.Name = "dtg_Content";
+            // 
             // Window
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -307,11 +306,11 @@
             this.tabPage1.ResumeLayout(false);
             this.tabPage1.PerformLayout();
             this.tabPage2.ResumeLayout(false);
-            ((System.ComponentModel.ISupportInitialize)(this.dtg_Packets)).EndInit();
             this.container2.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.dtg_Relays)).EndInit();
             this.container1.ResumeLayout(false);
             this.container1.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.dtg_Packets)).EndInit();
             this.ResumeLayout(false);
 
         }
@@ -320,10 +319,6 @@
 
         private System.Windows.Forms.TextBox txtbox_Console;
         private System.Windows.Forms.DataGridView dtg_PacketsData;
-        private System.Windows.Forms.DataGridViewTextBoxColumn dtg_Socket;
-        private System.Windows.Forms.DataGridViewTextBoxColumn dtg_EndPoint;
-        private System.Windows.Forms.DataGridViewTextBoxColumn dtg_Length;
-        private System.Windows.Forms.DataGridViewTextBoxColumn dtg_Content;
         private System.Windows.Forms.TabControl tabControl1;
         private System.Windows.Forms.TabPage tabPage1;
         private System.Windows.Forms.TabPage tabPage2;
@@ -340,6 +335,10 @@
         private System.Windows.Forms.DataGridViewTextBoxColumn Column1;
         private System.Windows.Forms.DataGridViewTextBoxColumn dataGridViewTextBoxColumn3;
         private System.Windows.Forms.DataGridViewTextBoxColumn ASCII;
+        private System.Windows.Forms.DataGridViewTextBoxColumn dtg_Socket;
+        private System.Windows.Forms.DataGridViewTextBoxColumn dtg_EndPoint;
+        private System.Windows.Forms.DataGridViewTextBoxColumn dtg_Length;
+        private System.Windows.Forms.DataGridViewTextBoxColumn dtg_Content;
     }
 }
 

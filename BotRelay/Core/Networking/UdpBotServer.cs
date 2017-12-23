@@ -29,7 +29,16 @@ namespace BotRelay.Core.Networking
         private readonly object sendingPacketsLock = new object();
         private bool sendingPackets;
 
+
+        /// <summary>
+        /// When packet is received.
+        /// </summary>
+        public event ClientReceiveEventHandler PacketRecv;
+        public delegate void ClientReceiveEventHandler(EndPoint ep, byte[] recv);
+
+        private void OnPacketRecv(EndPoint ep, byte[] recv) => PacketRecv?.Invoke(ep, recv);
         
+
         public UdpBotServer()
         {
             readBuffer = new byte[(1024 * 1024) * 4]; // 4MB
@@ -87,6 +96,8 @@ namespace BotRelay.Core.Networking
                 catch (Exception)
                 {
                 }
+
+                OnPacketRecv(remote, received);
 
 
                 lock (readBuffers)

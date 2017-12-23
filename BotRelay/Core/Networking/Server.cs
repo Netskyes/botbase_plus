@@ -16,7 +16,7 @@ namespace BotRelay.Core.Networking
 
         public long BytesReceived { get; set; }
 
-
+            
         protected Server()
         {
             clients = new List<Client>();

@@ -40,6 +40,7 @@ namespace BotRelay
             server.Listen(8085);
 
             udpServer = new UdpBotServer();
+            udpServer.PacketRecv += OnPacketRecv;
             udpServer.Listen(8085);
 
 
@@ -47,7 +48,7 @@ namespace BotRelay
             BeginInjection("Albion-Online.exe");
         }
 
-        
+
         #region Event Handlers
 
         private void OnServerState(Server s, bool isListening, ushort port)
@@ -97,6 +98,12 @@ namespace BotRelay
             AddToGrid(dtg_PacketsData, $"Relay [{rc.UID}]", rc.EndPoint, recv.Length, Encoding.ASCII.GetString(recv));
         }
 
+        private void OnPacketRecv(EndPoint ep, byte[] recv)
+        {
+            var ipep = (IPEndPoint)ep;
+
+            AddToGrid(dtg_PacketsData, "UDP", ipep.Address + " " + ipep.Port, recv.Length, Encoding.ASCII.GetString(recv));
+        }
 
         private void OnPacketSent(Server s, Client c, byte[] recv) => AddPacketToGrid(c.ClientRelay, recv);
 
@@ -116,7 +123,7 @@ namespace BotRelay
 
                 do
                 {
-                    result = Imports.Inject(processName, @"D:\SoftwareDev\C#\BotRelay\Debug\Mapping.dll");
+                    result = Imports.Inject(processName, "D:/SoftwareDev/C#/BotRelay/Debug/Mapping.dll");
                     Utils.Sleep(10);
                 }
                 while (!result);
@@ -161,13 +168,13 @@ namespace BotRelay
         {
             Utils.InvokeOn(this, () =>
             {
-                /*
+                
                 var packetRow = (dtg_Packets.SelectedRows.Count > 0) 
                     ? dtg_Packets.SelectedRows[0] : null;
 
                 if (packetRow == null)
                     return;
-                */
+                
 
                 var relayRow = (dtg_Relays.SelectedRows.Count > 0) 
                     ? dtg_Relays.SelectedRows[0] : null;
@@ -176,13 +183,13 @@ namespace BotRelay
                     return;
 
 
-                //int packetTag = (int)packetRow.Tag;
+                int packetTag = (int)packetRow.Tag;
                 int relayUID = (int)relayRow.Tag;
 
-                /*
+                
                 if (!sentPackets.ContainsKey(packetTag))
                     return;
-                */
+                
 
                 var client = server.Clients.FirstOrDefault
                     (c => c.ClientRelay != null && c.ClientRelay.UID == relayUID);
@@ -191,9 +198,9 @@ namespace BotRelay
                     return;
 
 
-                var packet = BuildPacket(22, Encoding.ASCII.GetBytes("Hello, how are you?"));
+                //var packet = BuildPacket(22, Encoding.ASCII.GetBytes("Hello, how are you?"));
 
-                client.SendEndPacket(packet);
+                client.SendEndPacket(sentPackets[packetTag]);
             });
         }
 
