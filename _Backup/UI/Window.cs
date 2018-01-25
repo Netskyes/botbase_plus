@@ -45,7 +45,7 @@ namespace BotRelay
 
 
             // Inject mapping
-            BeginInjection("Albion-Online.exe");
+            BeginInjection("PathOfExile.exe");
         }
 
 
@@ -123,7 +123,7 @@ namespace BotRelay
 
                 do
                 {
-                    result = Imports.Inject(processName, "D:/SoftwareDev/C#/BotRelay/Debug/Mapping.dll");
+                    result = Imports.Inject(processName, "G:/SoftwareDev/C#/BotRelay/Debug/Mapping.dll");
                     Utils.Sleep(10);
                 }
                 while (!result);

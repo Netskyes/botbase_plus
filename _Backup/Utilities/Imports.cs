@@ -10,7 +10,7 @@ namespace BotRelay
 {
     public static class Imports
     {
-        [DllImport("D:/SoftwareDev/C#/BotRelay/Debug/Tools.dll")]
+        [DllImport("G:/SoftwareDev/C#/BotRelay/Debug/Tools.dll")]
         public extern static bool Inject(string process, string dll);
     }
 }

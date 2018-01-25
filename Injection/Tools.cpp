@@ -1,7 +1,7 @@
 // Injection.cpp : Defines the exported functions for the DLL application.
 //
 #include "stdafx.h"
-#define BOTAPI __declspec(dllexport)
+#include "Tools.h"
 
 
 HANDLE GetProcessByName(const wchar_t* procName)
@@ -37,34 +37,33 @@ wchar_t* charToWChar(const char* text)
 	return wText;
 }
 
-extern "C"
+bool Inject(const char* procName, const char* dll)
 {
-	BOOL BOTAPI Inject(const char* procName, const char* dll)
+	HANDLE procHandle = GetProcessByName(charToWChar(procName));
+
+	if (!procHandle)
 	{
-		HANDLE procHandle = GetProcessByName(charToWChar(procName));
-
-		if (!procHandle)
-		{
-			return FALSE;
-		}
-
-
-		DWORD LLAddress = (DWORD)GetProcAddress(GetModuleHandle(L"kernel32.dll"), "LoadLibraryA");
-		PVOID memory = VirtualAllocEx(procHandle, NULL, strlen(dll) + 1, MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE);
-
-		WriteProcessMemory(procHandle, memory, dll, strlen(dll) + 1, NULL);
-
-
-		if (!CreateRemoteThread(procHandle, NULL, NULL, (LPTHREAD_START_ROUTINE)LLAddress, memory, NULL, NULL))
-		{
-			return FALSE;
-		}
-
-
-		CloseHandle(procHandle);
-		VirtualFreeEx(procHandle, memory, 0, MEM_FREE | MEM_COMMIT);
-
-		return 1;
+		return FALSE;
 	}
+
+
+	DWORD LLAddress = (DWORD)GetProcAddress(GetModuleHandle(L"kernel32.dll"), "LoadLibraryA");
+	PVOID memory = VirtualAllocEx(procHandle, NULL, strlen(dll) + 1, MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE);
+
+	WriteProcessMemory(procHandle, memory, dll, strlen(dll) + 1, NULL);
+
+
+	if (!CreateRemoteThread(procHandle, NULL, NULL, (LPTHREAD_START_ROUTINE)LLAddress, memory, NULL, NULL))
+	{
+		return FALSE;
+	}
+
+
+	CloseHandle(procHandle);
+	VirtualFreeEx(procHandle, memory, 0, MEM_FREE | MEM_COMMIT);
+
+	return 1;
 }
+	
+
 	
