@@ -28,3 +28,4 @@
 #include <vector>
 #include <thread>
 #include <mutex>
+#include <mono\jit\jit.h>

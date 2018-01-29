@@ -1,6 +1,22 @@
 #include "stdafx.h"
 
-DWORD WINAPI Entry();
+void WINAPI Entry();
+HMODULE hModuleMain;
+
+void CreateEntryThread()
+{
+	AllocConsole();
+	freopen("CONIN$", "r", stdin);
+	freopen("CONOUT$", "w", stdout);
+
+	CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)&Entry, NULL, NULL, NULL);
+}
+
+void UnloadSelf()
+{
+	FreeConsole();
+	FreeLibraryAndExitThread(hModuleMain, NULL);
+}
 
 extern "C" __declspec(dllexport) int WINAPI DllMain(HINSTANCE hInstDll, DWORD fdwReason, LPVOID lpvReserved)
 {
@@ -8,11 +24,8 @@ extern "C" __declspec(dllexport) int WINAPI DllMain(HINSTANCE hInstDll, DWORD fd
 	{
 		case DLL_PROCESS_ATTACH:
 		{
-			AllocConsole();
-			freopen("CONIN$", "r", stdin);
-			freopen("CONOUT$", "w", stdout);
-			
-			CreateThread(NULL, NULL, (LPTHREAD_START_ROUTINE)&Entry, NULL, NULL, NULL);
+			hModuleMain = (HMODULE)hInstDll;
+			CreateEntryThread();
 			break;
 		}
 	}
