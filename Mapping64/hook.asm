@@ -1,17 +1,16 @@
-PUBLIC hook_connect
-
+PUBLIC asm_hook_connect;
 
 _DATA SEGMENT
 _DATA ENDS
+
 _TEXT SEGMENT
 
-hook_connect PROC
-	pushad
-	pushfd
+EXTERN hook_connect: PROC
+EXTERN connectTramp: qword
 
-	popad
-	popfd
-hook_connect ENDP
+asm_hook_connect PROC
+	jmp connectTramp;
+asm_hook_connect ENDP
 
 _TEXT ENDS
 END
