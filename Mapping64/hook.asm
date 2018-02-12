@@ -16,6 +16,7 @@ EXTERN retAddr: qword
 
 
 asm_hook_connect PROC
+	mov sockAddrBackup, rdx;
 	push rax;
 	push r9;
 	push r10;
@@ -23,19 +24,17 @@ asm_hook_connect PROC
 	pushfq;
 	push r8;
 
-	push rdx;
-	pop sockAddrBackup;
+	
+	
 	push rdx;
 	push rcx;
 
 	call hook_connect;
 
 	pop rcx;
-
 	add rsp, 8;
-	push sockAddrNew;
+	mov rdx, sockAddrNew;
 
-	pop rdx;
 	pop r8;
 	popfq;
 	pop r11;
@@ -55,7 +54,9 @@ asm_hook_connect PROC
 	pushfq;
 
 	mov rcx, sockBackup;
+	sub rsp, 8;
 	call send_sock_patch;
+	add rsp, 8;
 
 	popfq;
 	pop r10;
