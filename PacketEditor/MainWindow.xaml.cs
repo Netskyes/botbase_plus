@@ -145,6 +145,10 @@ namespace PacketEditor
 
         private void OnClientState(Server server, Client client, bool isConnected)
         {
+            if (isConnected)
+            {
+                ConsoleLog("Connected: " + client.EndPoint);
+            }
         }
 
 
