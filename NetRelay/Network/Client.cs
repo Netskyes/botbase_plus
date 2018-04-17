@@ -11,7 +11,7 @@ using System.Net.Sockets;
 
 namespace NetRelay.Network
 {
-    public class Client
+    public abstract class Client
     {
         public Socket Socket { get => handle; }
         public IPEndPoint EndPoint { get; private set; }
@@ -169,7 +169,7 @@ namespace NetRelay.Network
             => Send(new Packet { Buffer = bytes });
 
         public void Send(byte[] bytes, IPEndPoint endPoint)
-            => Send(new Packet { Buffer = bytes, EndPoint = EndPoint, UdpPacket = true });
+            => Send(new Packet { Buffer = bytes, EndPoint = endPoint, UdpPacket = true });
 
         public void Send(Packet packet)
         {

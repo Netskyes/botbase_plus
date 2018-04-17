@@ -24,18 +24,18 @@ namespace PacketEditor
     /// </summary>
     public partial class MainWindow : Window
     {
-        public ObservableCollection<PacketController> TCPPacketItems
+        public ObservableCollection<PacketModel> TCPPacketItems
             { get => tcpPacketItems; }
 
-        public ObservableCollection<PacketController> UDPPacketItems
+        public ObservableCollection<PacketModel> UDPPacketItems
             { get => udpPacketItems; }
 
 
         private Server server;
         private UdpServer udpServer;
         private const string processName = "Albion-Online.exe";
-        private ObservableCollection<PacketController> tcpPacketItems = new ObservableCollection<PacketController>();
-        private ObservableCollection<PacketController> udpPacketItems = new ObservableCollection<PacketController>();
+        private ObservableCollection<PacketModel> tcpPacketItems = new ObservableCollection<PacketModel>();
+        private ObservableCollection<PacketModel> udpPacketItems = new ObservableCollection<PacketModel>();
 
 
 
@@ -53,10 +53,10 @@ namespace PacketEditor
             server.ClientRecv += OnClientRecv;
             server.ClientState += OnClientState;
 
-            server.Listen(8085);
+            server.Listen(8089);
 
             udpServer = new UdpServer();
-            udpServer.BeginListenUdp(8085);
+            udpServer.BeginListenUdp(8089);
             udpServer.ClientRecv += OnUdpClientRecv;
             udpServer.ClientSend += OnUdpClientSend;
             udpServer.ClientState += OnUdpClientState;
@@ -64,7 +64,7 @@ namespace PacketEditor
 
             if (server.Listening && udpServer.Listening)
             {
-                ConsoleLog($"Servers listening on: {server.Port}");
+                ConsoleLog($"Server listening on: {server.Port}");
             }
 
             //BeginInjection(processName);
@@ -85,7 +85,7 @@ namespace PacketEditor
                 if (udpPacketItems.Count > 600)
                     udpPacketItems.Clear();
 
-                udpPacketItems.Add(new PacketController
+                udpPacketItems.Add(new PacketModel
                 {
                     ID = 2,
                     Client = null,
@@ -106,44 +106,48 @@ namespace PacketEditor
                 if (udpPacketItems.Count > 600)
                     udpPacketItems.Clear();
 
-                udpPacketItems.Add(new PacketController
+                udpPacketItems.Add(new PacketModel
                 {
                     ID = 1,
                     Client = null,
                     Remote = packet.EndPoint.ToString(),
                     Size = packet.Buffer.Length,
-                    Content = Encoding.UTF8.GetString(packet.Buffer)
+                    Content = Encoding.UTF8.GetString(packet.Buffer),
+                    Bytes = packet.Buffer
                 });
             });
         }
 
-        private void OnClientRecv(Server server, Client client, Packet packet)
+        private void OnClientRecv(Server parent, Client client, Packet packet)
         {
             var temp = client as ClientMain;
             if (temp is null || packet is null)
                 return;
+
+            
 
             Invoke(() =>
             {
                 if (tcpPacketItems.Count > 100)
                     tcpPacketItems.Clear();
 
-                tcpPacketItems.Add(new PacketController
+                tcpPacketItems.Add(new PacketModel
                 {
                     Client = client,
                     ID = temp.ID,
                     Remote = temp.EndPoint.ToString(),
                     Size = packet.Buffer.Length,
-                    Content = Encoding.UTF8.GetString(packet.Buffer)
+                    Content = Encoding.UTF8.GetString(packet.Buffer),
+                    Bytes = packet.Buffer
                 });
             });
         }
 
-        private void OnClientSend(Server server, Client client, Packet packet)
+        private void OnClientSend(Server parent, Client client, Packet packet)
         {
         }
 
-        private void OnClientState(Server server, Client client, bool isConnected)
+        private void OnClientState(Server parent, Client client, bool isConnected)
         {
             if (isConnected)
             {
@@ -182,5 +186,27 @@ namespace PacketEditor
         }
 
         private void Invoke(Action a) => Dispatcher.Invoke(a);
+
+
+
+        private void DataGridRow_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+            var item = (PacketModel)(sender as DataGridRow).DataContext;
+            if (item == null)
+                return;
+
+            var binary = item.Bytes.SelectMany(b => b.ToString("X"));
+            int i = 0;
+            var query = from b in binary let num = i++ group b by num / 2 into g select g.ToArray();
+
+            Invoke(() =>
+            {
+                txtbox_Hex.Clear();
+                foreach (var b in query)
+                {
+                    txtbox_Hex.AppendText(string.Join("", b) + " ");
+                }
+            });
+        }
     }
 }

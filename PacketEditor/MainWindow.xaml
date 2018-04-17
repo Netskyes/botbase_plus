@@ -7,13 +7,18 @@
         mc:Ignorable="d"
         Title="Packet Editor" Height="654" Width="832" Loaded="Window_Loaded">
     <Grid>
-        <TextBox HorizontalAlignment="Left" Height="85" Margin="0,538,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="824" x:Name="txtbox_Console" IsReadOnly="True" />
-
-
-        <TabControl HorizontalAlignment="Left" Height="538" VerticalAlignment="Top" Width="824">
+        <TabControl VerticalAlignment="Stretch">
             <TabItem Header="TCP Packets">
                 <Grid Background="#FFF">
-                    <DataGrid ItemsSource="{Binding TCPPacketItems}" DataContext="{Binding RelativeSource={RelativeSource AncestorType=Window}}" x:Name="dtg_TCPPackets" HorizontalAlignment="Left" Height="510" VerticalAlignment="Top" Width="818" Padding="0" CanUserAddRows="False" AutoGenerateColumns="False" SelectionMode="Single">
+                    <DataGrid ItemsSource="{Binding TCPPacketItems}" DataContext="{Binding RelativeSource={RelativeSource AncestorType=Window}}" 
+                              x:Name="dtg_TCPPackets" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" 
+                              Padding="0" CanUserAddRows="False" AutoGenerateColumns="False" SelectionMode="Single" 
+                              Background="#FFF" SelectedItem="{Binding PacketModel}">
+                        <DataGrid.ItemContainerStyle>
+                            <Style TargetType="DataGridRow">
+                                <EventSetter Event="MouseDown" Handler="DataGridRow_MouseDown" HandledEventsToo="True"/>
+                            </Style>
+                        </DataGrid.ItemContainerStyle>
                         <DataGrid.Columns>
                             <DataGridTextColumn Header="ID" Binding="{Binding ID}" CanUserResize="False" CanUserReorder="False" Width="60" IsReadOnly="True"/>
                             <DataGridTextColumn Header="Remote" Binding="{Binding Remote}" CanUserResize="False" CanUserReorder="False" Width="120" IsReadOnly="True"/>
@@ -25,7 +30,11 @@
             </TabItem>
             <TabItem Header="Udp Packets">
                 <Grid Background="#FFF">
-                    <DataGrid ItemsSource="{Binding UDPPacketItems}" DataContext="{Binding RelativeSource={RelativeSource AncestorType={x:Type Window}}}" x:Name="dtg_UDPPackets" HorizontalAlignment="Left" Height="510" VerticalAlignment="Top" Width="818" Padding="0" CanUserAddRows="False" AutoGenerateColumns="False" SelectionMode="Single">
+                    <DataGrid ItemsSource="{Binding UDPPacketItems}" DataContext="{Binding RelativeSource={RelativeSource AncestorType={x:Type Window}}}" 
+                              x:Name="dtg_UDPPackets" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
+                              Padding="0" CanUserAddRows="False" AutoGenerateColumns="False" SelectionMode="Single" 
+                              Background="#FFF" SelectedItem="{Binding PacketModel}">
+                        
                         <DataGrid.Columns>
                             <DataGridTextColumn Header="ID" Binding="{Binding ID}" CanUserResize="False" CanUserReorder="False" Width="60" IsReadOnly="True"/>
                             <DataGridTextColumn Header="Remote" Binding="{Binding Remote}" CanUserResize="False" CanUserReorder="False" Width="120" IsReadOnly="True"/>
@@ -33,6 +42,18 @@
                             <DataGridTextColumn Header="Content" Binding="{Binding Content}" CanUserResize="False" CanUserReorder="False" Width="*" IsReadOnly="True"/>
                         </DataGrid.Columns>
                     </DataGrid>
+                </Grid>
+            </TabItem>
+        </TabControl>
+        <TabControl VerticalAlignment="Bottom">
+            <TabItem Header="Console">
+                <Grid>
+                    <TextBox HorizontalAlignment="Stretch" Height="85" TextWrapping="Wrap" Text="" VerticalAlignment="Bottom" x:Name="txtbox_Console" IsReadOnly="True" />
+                </Grid>
+            </TabItem>
+            <TabItem Header="Hex">
+                <Grid>
+                    <TextBox HorizontalAlignment="Stretch" Height="85" TextWrapping="Wrap" Text="" VerticalAlignment="Bottom" x:Name="txtbox_Hex" IsReadOnly="True" />
                 </Grid>
             </TabItem>
         </TabControl>
