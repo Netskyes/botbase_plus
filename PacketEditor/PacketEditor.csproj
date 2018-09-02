@@ -75,6 +75,7 @@
       <SubType>Designer</SubType>
     </Page>
     <Compile Include="Api\Core\CoreBase.cs" />
+    <Compile Include="Api\Core\Delegates.cs" />
     <Compile Include="Api\Core\PluginLoader.cs" />
     <Compile Include="Api\Core\PluginObject.cs" />
     <Compile Include="Api\Core\ProxyHandler.cs" />

@@ -40,7 +40,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Network\Delegates.cs" />
     <Compile Include="Network\Enums\ReceiveType.cs" />
     <Compile Include="Network\Core\Client.cs" />
     <Compile Include="Network\ClientExtensions\ClientRelay.cs" />

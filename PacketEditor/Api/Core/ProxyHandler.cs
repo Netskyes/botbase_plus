@@ -3,7 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using static NetRelay.Network.Delegates;
+using NetRelay.Network;
+using NetRelay.Network.Objects;
 
 namespace PacketEditor.Api
 {
@@ -15,9 +16,13 @@ namespace PacketEditor.Api
 
         public ConsoleLog ConsoleLogProxy { get; set; }
         public void ConsoleLog(string text) => ConsoleLogProxy(text);
-        
+
+        public event ClientRecvEventHandler ClientRecv;
+        public void OnClientRecv(byte[] bytes) => ClientRecv?.Invoke(bytes);
+
         public ProxyHandler()
         {
+            
         }
     }
 }

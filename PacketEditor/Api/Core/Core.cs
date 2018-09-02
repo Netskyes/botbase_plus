@@ -2,17 +2,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
-using PacketEditor.Enums;
 
 namespace PacketEditor.Api
 {
-    using Enums;
     using NetRelay.Utils;
-    using NetRelay.Network;
-    using NetRelay.Network.Objects;
-    using NetRelay.Network.ClientExtensions;
-    using System.Reflection;
 
     public class Core : CoreBase
     {

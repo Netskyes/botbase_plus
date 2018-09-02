@@ -3,6 +3,7 @@ using System.Linq;
 using System.Reflection;
 using NetRelay.Utils;
 using NetRelay.Network;
+using System.Threading;
 
 namespace PacketEditor.Api
 {
@@ -18,13 +19,18 @@ namespace PacketEditor.Api
 
             var instance = AppDomain.CurrentDomain.CreateInstanceFromAndUnwrap(asm.Location, pluginEntry.FullName);
             (instance as Core).SetProxy(proxy);
+            (instance as Core).RegisterEventHandlers();
 
             var plugin = pluginEntry.GetMethods().FirstOrDefault(x => x.Name == "PluginRun");
             if (plugin != null)
             {
                 try
                 {
-                    instance.GetType().GetMethod("PluginRun").Invoke(instance, null);
+                    new Thread(() =>
+                    {
+                        instance.GetType()?.GetMethod("PluginRun")?.Invoke(instance, null);
+
+                    }).Start();
                 }
                 catch (Exception e)
                 {

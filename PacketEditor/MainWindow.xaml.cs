@@ -26,7 +26,6 @@ namespace PacketEditor
     using Api;
     using Objects;
     using System.Reflection;
-    using static NetRelay.Network.Delegates;
 
     public partial class MainWindow : Window
     {
@@ -362,8 +361,9 @@ namespace PacketEditor
                 var proxy = new ProxyHandler();
                 proxy.SendPacketProxy = new SendPacket(SendPacket);
                 proxy.ConsoleLogProxy = new ConsoleLog(ConsoleLog);
+                server.ClientRecv += (s, c, p) => { proxy.OnClientRecv(p.Buffer); };
 
-                instance.Load(pluginPath, proxy); //AppDomain.Unload(domain);
+                instance.Load(pluginPath, proxy);
             }
             catch (Exception e)
             {
