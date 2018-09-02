@@ -95,7 +95,7 @@ void __stdcall PatchSockAddr()
 
 	if (hostname != "127.0.0.1")
 	{
-		((sockaddr_in*)sockAddrNew)->sin_port = htons(8085);
+		((sockaddr_in*)sockAddrNew)->sin_port = htons(8089);
 		((sockaddr_in*)sockAddrNew)->sin_addr.s_addr = inet_addr("127.0.0.1");
 
 		isPatchUp = true;

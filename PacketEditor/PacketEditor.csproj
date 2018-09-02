@@ -74,10 +74,15 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
+    <Compile Include="Api\Core\CoreBase.cs" />
+    <Compile Include="Api\Core\PluginLoader.cs" />
+    <Compile Include="Api\Core\PluginObject.cs" />
+    <Compile Include="Api\Core\ProxyHandler.cs" />
     <Compile Include="App.xaml.cs">
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Enums\IPlugin.cs" />
     <Compile Include="Imports.cs" />
     <Compile Include="MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>
@@ -85,7 +90,9 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Controllers\PacketModel.cs" />
+    <Compile Include="Objects\PacketModel.cs" />
+    <Compile Include="Objects\Plugin.cs" />
+    <Compile Include="Api\Core\Core.cs" />
     <Compile Include="Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>
     </Compile>
