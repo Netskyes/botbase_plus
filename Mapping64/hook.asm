@@ -6,12 +6,11 @@ _DATA ENDS
 
 _TEXT SEGMENT
 
-EXTERN hook_connect: PROC
+EXTERN PatchSocketAddress: PROC
+EXTERN SendSockPatch: PROC
 
 EXTERN connectTramp: qword
 EXTERN WSAConnectTramp: qword
-
-EXTERN send_sock_patch: PROC
 
 EXTERN sockBackup: qword
 EXTERN sockAddrNew: qword
@@ -20,25 +19,25 @@ EXTERN retAddr: qword
 
 
 asm_hook_connect PROC
-	mov sockAddrBackup, rdx;
+	push rdx;
+	pop sockAddrBackup;
+	push rcx;
+	pop sockBackup;
+	
 	push rax;
 	push r9;
 	push r10;
 	push r11;
 	pushfq;
-	push r8;
 
-	
-	
+	push r8;
 	push rdx;
 	push rcx;
-
-	call hook_connect;
+	call PatchSocketAddress;
 
 	pop rcx;
 	add rsp, 8;
 	mov rdx, sockAddrNew;
-
 	pop r8;
 	popfq;
 	pop r11;
@@ -50,16 +49,9 @@ asm_hook_connect PROC
 	call connectTramp;
 	push retAddr;
 
-	push rcx;
-	push rdx;
-	push r8;
-	push r9;
-	push r10;
-	pushfq;
-
 	mov rcx, sockBackup;
 	sub rsp, 8;
-	call send_sock_patch;
+	call SendSockPatch;
 	add rsp, 8;
 
 	popfq;
@@ -91,7 +83,7 @@ asm_hook_wsaconnect PROC
 	push rdx;
 	push rcx;
 
-	call hook_connect;
+	call PatchSocketAddress;
 
 	pop rcx;
 	add rsp, 8;
@@ -118,7 +110,7 @@ asm_hook_wsaconnect PROC
 
 	mov rcx, sockBackup;
 	sub rsp, 8;
-	call send_sock_patch;
+	call SendSockPatch;
 	add rsp, 8;
 
 	popfq;

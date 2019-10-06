@@ -77,13 +77,14 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
     <OutDir>$(SolutionDir)$(Configuration)\</OutDir>
-    <IncludePath>G:\SoftwareDev\C#\BotRelay\Mapping64;$(IncludePath)</IncludePath>
+    <IncludePath>D:\SoftwareDev\CSharp\BotRelay\Mapping64;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
+    <IncludePath>G:\SoftwareDev\CSharp\BotRelay\Mapping64;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -101,12 +102,13 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
-      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;MAPPING64_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>D:\SoftwareDev\CSharp\BotRelay\asmjit;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -133,7 +135,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
-      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
@@ -141,6 +143,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;MAPPING64_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>G:\SoftwareDev\CSharp\BotRelay\asmjit;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -150,10 +153,81 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="..\asmjit\arm.h" />
+    <ClInclude Include="..\asmjit\asmjit.h" />
+    <ClInclude Include="..\asmjit\asmjit_apibegin.h" />
+    <ClInclude Include="..\asmjit\asmjit_apiend.h" />
+    <ClInclude Include="..\asmjit\asmjit_build.h" />
+    <ClInclude Include="..\asmjit\base.h" />
+    <ClInclude Include="..\asmjit\base\arch.h" />
+    <ClInclude Include="..\asmjit\base\assembler.h" />
+    <ClInclude Include="..\asmjit\base\codebuilder.h" />
+    <ClInclude Include="..\asmjit\base\codecompiler.h" />
+    <ClInclude Include="..\asmjit\base\codeemitter.h" />
+    <ClInclude Include="..\asmjit\base\codeholder.h" />
+    <ClInclude Include="..\asmjit\base\constpool.h" />
+    <ClInclude Include="..\asmjit\base\cpuinfo.h" />
+    <ClInclude Include="..\asmjit\base\func.h" />
+    <ClInclude Include="..\asmjit\base\globals.h" />
+    <ClInclude Include="..\asmjit\base\inst.h" />
+    <ClInclude Include="..\asmjit\base\logging.h" />
+    <ClInclude Include="..\asmjit\base\misc_p.h" />
+    <ClInclude Include="..\asmjit\base\operand.h" />
+    <ClInclude Include="..\asmjit\base\osutils.h" />
+    <ClInclude Include="..\asmjit\base\regalloc_p.h" />
+    <ClInclude Include="..\asmjit\base\runtime.h" />
+    <ClInclude Include="..\asmjit\base\simdtypes.h" />
+    <ClInclude Include="..\asmjit\base\string.h" />
+    <ClInclude Include="..\asmjit\base\utils.h" />
+    <ClInclude Include="..\asmjit\base\vmem.h" />
+    <ClInclude Include="..\asmjit\base\zone.h" />
+    <ClInclude Include="..\asmjit\x86.h" />
+    <ClInclude Include="..\asmjit\x86\x86assembler.h" />
+    <ClInclude Include="..\asmjit\x86\x86builder.h" />
+    <ClInclude Include="..\asmjit\x86\x86compiler.h" />
+    <ClInclude Include="..\asmjit\x86\x86emitter.h" />
+    <ClInclude Include="..\asmjit\x86\x86globals.h" />
+    <ClInclude Include="..\asmjit\x86\x86inst.h" />
+    <ClInclude Include="..\asmjit\x86\x86instimpl_p.h" />
+    <ClInclude Include="..\asmjit\x86\x86internal_p.h" />
+    <ClInclude Include="..\asmjit\x86\x86logging_p.h" />
+    <ClInclude Include="..\asmjit\x86\x86misc.h" />
+    <ClInclude Include="..\asmjit\x86\x86operand.h" />
+    <ClInclude Include="..\asmjit\x86\x86regalloc_p.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\asmjit\base\arch.cpp" />
+    <ClCompile Include="..\asmjit\base\assembler.cpp" />
+    <ClCompile Include="..\asmjit\base\codebuilder.cpp" />
+    <ClCompile Include="..\asmjit\base\codecompiler.cpp" />
+    <ClCompile Include="..\asmjit\base\codeemitter.cpp" />
+    <ClCompile Include="..\asmjit\base\codeholder.cpp" />
+    <ClCompile Include="..\asmjit\base\constpool.cpp" />
+    <ClCompile Include="..\asmjit\base\cpuinfo.cpp" />
+    <ClCompile Include="..\asmjit\base\func.cpp" />
+    <ClCompile Include="..\asmjit\base\globals.cpp" />
+    <ClCompile Include="..\asmjit\base\inst.cpp" />
+    <ClCompile Include="..\asmjit\base\logging.cpp" />
+    <ClCompile Include="..\asmjit\base\operand.cpp" />
+    <ClCompile Include="..\asmjit\base\osutils.cpp" />
+    <ClCompile Include="..\asmjit\base\regalloc.cpp" />
+    <ClCompile Include="..\asmjit\base\runtime.cpp" />
+    <ClCompile Include="..\asmjit\base\string.cpp" />
+    <ClCompile Include="..\asmjit\base\utils.cpp" />
+    <ClCompile Include="..\asmjit\base\vmem.cpp" />
+    <ClCompile Include="..\asmjit\base\zone.cpp" />
+    <ClCompile Include="..\asmjit\x86\x86assembler.cpp" />
+    <ClCompile Include="..\asmjit\x86\x86builder.cpp" />
+    <ClCompile Include="..\asmjit\x86\x86compiler.cpp" />
+    <ClCompile Include="..\asmjit\x86\x86inst.cpp" />
+    <ClCompile Include="..\asmjit\x86\x86instimpl.cpp" />
+    <ClCompile Include="..\asmjit\x86\x86internal.cpp" />
+    <ClCompile Include="..\asmjit\x86\x86logging.cpp" />
+    <ClCompile Include="..\asmjit\x86\x86operand.cpp" />
+    <ClCompile Include="..\asmjit\x86\x86operand_regs.cpp" />
+    <ClCompile Include="..\asmjit\x86\x86regalloc.cpp" />
     <ClCompile Include="dllmain.cpp" />
     <ClCompile Include="Mapping64.cpp" />
     <ClCompile Include="stdafx.cpp">
@@ -165,6 +239,9 @@
   </ItemGroup>
   <ItemGroup>
     <MASM Include="hook.asm" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="cpp.hint" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
